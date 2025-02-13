@@ -11,6 +11,11 @@
     "istanbulBlock": 0,
     "berlinBlock": 0,
     "londonBlock": 0,
+    "mergeForkBlock": 0,
+    "terminalTotalDifficulty": 0,
+    "shanghaiTime": 0,
+    "terminalBlockHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
+    "terminalBlockNumber": 0,
     "clique": {
       "period": 5,
       "epoch": 30000

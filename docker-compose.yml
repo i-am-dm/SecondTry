@@ -1,68 +1,182 @@
-version: "3.8"
+version: '3'
+
 services:
-  validator:
-    image: ethereum/client-go:latest
-    container_name: geth-validator
-    working_dir: /root
-    volumes:
-      - ./validator:/root
-      - ./genesis.json:/root/genesis.json
-    command: 
-      - geth
-      - init
-      - /root/genesis.json
-      - --datadir
-      - /root
-    entrypoint: ""
+  ethnetstats:
+    image: puppeth/ethstats:latest
+    platform: linux/amd64
+    environment:
+      - WS_SECRET=devsecret
+      - ADMIN_PASSWORD=adminpassword
     ports:
-      - "8545:8545"
-      - "8546:8546"
-      - "30303:30303"
+      - "3000:3000"
     networks:
-      - ethereum
+      - ethnetwork
+
+  beacon1:
+    image: sigp/lighthouse:latest
+    platform: linux/amd64
+    container_name: beacon-node1
+    command: >
+      lighthouse bn
+      --network mainnet
+      --execution-endpoint http://geth-node1:8551
+      --execution-jwt /root/geth/jwtsecret
+      --http
+      --http-address 0.0.0.0
+      --disable-deposit-contract-sync
+    volumes:
+      - ./beacon1:/root/.lighthouse
+      - ./node1/geth/jwtsecret:/root/geth/jwtsecret
+    ports:
+      - "5052:5052"
+    networks:
+      - ethnetwork
+    depends_on:
+      - node1
 
   node1:
     image: ethereum/client-go:latest
+    platform: linux/amd64
     container_name: geth-node1
     working_dir: /root
     volumes:
       - ./node1:/root
       - ./genesis.json:/root/genesis.json
-    command:
-      - geth
-      - init
-      - /root/genesis.json
-      - --datadir
-      - /root
-    entrypoint: ""
+    command: >
+      --datadir /root
+      --networkid 1999
+      --http
+      --http.addr "0.0.0.0"
+      --http.port 8545
+      --http.corsdomain "*"
+      --http.api "eth,net,web3,personal,miner,admin"
+      --ws
+      --ws.addr "0.0.0.0"
+      --ws.port 8546
+      --ws.origins "*"
+      --authrpc.addr "0.0.0.0"
+      --authrpc.port 8551
+      --authrpc.vhosts "*"
+      --authrpc.jwtsecret /root/geth/jwtsecret
+      --ethstats "Node1:devsecret@ethnetstats:3000"
     ports:
-      - "8547:8545"
-      - "8548:8546"
-      - "30304:30303"
+      - "8545:8545"
+      - "8546:8546"
+      - "8551:8551"
+      - "30303:30303"
     networks:
-      - ethereum
+      - ethnetwork
+    depends_on:
+      - ethnetstats
 
   node2:
     image: ethereum/client-go:latest
+    platform: linux/amd64
     container_name: geth-node2
     working_dir: /root
     volumes:
       - ./node2:/root
       - ./genesis.json:/root/genesis.json
-    command:
-      - geth
-      - init
-      - /root/genesis.json
-      - --datadir
-      - /root
-    entrypoint: ""
+    command: >
+      --datadir /root
+      --networkid 1999
+      --http
+      --http.addr "0.0.0.0"
+      --http.port 8545
+      --http.corsdomain "*"
+      --http.api "eth,net,web3,personal,miner,admin"
+      --ws
+      --ws.addr "0.0.0.0"
+      --ws.port 8546
+      --ws.origins "*"
+      --authrpc.addr "0.0.0.0"
+      --authrpc.port 8551
+      --authrpc.vhosts "*"
+      --authrpc.jwtsecret /root/geth/jwtsecret
+      --bootnodes "enode://c51f40b9dd3e687c6d00b63c1683cb784e15ddcf751cfd042fe34aa733388215a93f5e63adc61928dd9d627bff58f1d15c6dcce14cadafddc5910d83742187a7@172.19.0.3:30303"
+      --ethstats "Node2:devsecret@ethnetstats:3000"
     ports:
-      - "8549:8545"
-      - "8550:8546"
+      - "8555:8545"
+      - "8556:8546"
+      - "8552:8551"
+      - "30304:30303"
+    networks:
+      - ethnetwork
+    depends_on:
+      - node1
+
+  node3:
+    image: ethereum/client-go:latest
+    platform: linux/amd64
+    container_name: geth-node3
+    working_dir: /root
+    volumes:
+      - ./node3:/root
+      - ./genesis.json:/root/genesis.json
+    command: >
+      --datadir /root
+      --networkid 1999
+      --http
+      --http.addr "0.0.0.0"
+      --http.port 8545
+      --http.corsdomain "*"
+      --http.api "eth,net,web3,personal,miner,admin"
+      --ws
+      --ws.addr "0.0.0.0"
+      --ws.port 8546
+      --ws.origins "*"
+      --authrpc.addr "0.0.0.0"
+      --authrpc.port 8551
+      --authrpc.vhosts "*"
+      --authrpc.jwtsecret /root/geth/jwtsecret
+      --bootnodes "enode://c51f40b9dd3e687c6d00b63c1683cb784e15ddcf751cfd042fe34aa733388215a93f5e63adc61928dd9d627bff58f1d15c6dcce14cadafddc5910d83742187a7@172.19.0.3:30303"
+      --ethstats "Node3:devsecret@ethnetstats:3000"
+    ports:
+      - "8565:8545"
+      - "8566:8546"
+      - "8553:8551"
       - "30305:30303"
     networks:
-      - ethereum
+      - ethnetwork
+    depends_on:
+      - node1
+
+  node4:
+    image: ethereum/client-go:latest
+    platform: linux/amd64
+    container_name: geth-node4
+    working_dir: /root
+    volumes:
+      - ./node4:/root
+      - ./genesis.json:/root/genesis.json
+    command: >
+      --datadir /root
+      --networkid 1999
+      --http
+      --http.addr "0.0.0.0"
+      --http.port 8545
+      --http.corsdomain "*"
+      --http.api "eth,net,web3,personal,miner,admin"
+      --ws
+      --ws.addr "0.0.0.0"
+      --ws.port 8546
+      --ws.origins "*"
+      --authrpc.addr "0.0.0.0"
+      --authrpc.port 8551
+      --authrpc.vhosts "*"
+      --authrpc.jwtsecret /root/geth/jwtsecret
+      --bootnodes "enode://c51f40b9dd3e687c6d00b63c1683cb784e15ddcf751cfd042fe34aa733388215a93f5e63adc61928dd9d627bff58f1d15c6dcce14cadafddc5910d83742187a7@172.19.0.3:30303"
+      --ethstats "Node4:devsecret@ethnetstats:3000"
+    ports:
+      - "8575:8545"
+      - "8576:8546"
+      - "8554:8551"
+      - "30306:30303"
+    networks:
+      - ethnetwork
+    depends_on:
+      - node1
 
 networks:
-  ethereum:
+  ethnetwork:
     driver: bridge 
